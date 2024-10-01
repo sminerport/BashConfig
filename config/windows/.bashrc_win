@@ -117,15 +117,13 @@ if ! shopt -oq posix; then
 fi
 
 # Customize the Bash Prompt
+PS1='\[\033[1;96m\]\w '  # Current directory in light cyan
 
-# Display full working directory in bright cyan
-PS1='\[\033[1;96m\]\w '
-
-# Display Git branch in purple if in a Git repository
-PS1+='$(git branch --show-current 2>/dev/null | sed -e "s/^/ \033[0;95m(/" -e "s/$/)\033[1;90m/") '
+# Display Git branch in purple if in a Git repository, wrapped in \[ \] for non-printing characters
+PS1+='$(git branch --show-current 2>/dev/null | sed -e "s/^/ \[\033[0;95m\](/" -e "s/$/)\[\033[1;90m\]/") '
 
 # End prompt with a dollar sign in dark gray
-PS1+='\$\[\033[00m\] '
+PS1+='\[\033[00m\]\$ '
 
 # Aliases for convenience
 
