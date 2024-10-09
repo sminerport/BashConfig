@@ -145,14 +145,30 @@ alias glog="git log --oneline --graph --decorate --all"
 
 git config --global alias.isprivate '!gh repo view --json visibility --jq ".visibility" | grep -q "PRIVATE" && echo "Private" || echo "Public"'
 
+# Define the dotnet bash completion function
+
+function _dotnet_bash_complete()
+{
+  local cur="${COMP_WORDS[COMP_CWORD]}" IFS=$'\n' # On Windows you may need to use use IFS=$'\r\n'
+  local candidates
+
+  read -d '' -ra candidates < <(dotnet complete --position "${COMP_POINT}" "${COMP_LINE}" 2>/dev/null)
+
+  read -d '' -ra COMPREPLY < <(compgen -W "${candidates[*]:-}" -- "$cur")
+}
+
 # Detect if running in WSL
 if grep -qi microsoft /proc/version; then
     # WSL environment (Unix-based pyenv)
     export PATH="$HOME/.pyenv/bin:$PATH"
+    export PATH="$PATH:/usr/local/go/bin"
+
     eval "$(pyenv init --path)"
     eval "$(pyenv init -)"
     eval "$(pyenv virtualenv-init -)"
-    echo "Running in WSL: Using WSL-specific pyenv"
+    echo "Running in WSL: Using WSL-specific pyenv and dotnet path"
+
+    complete -f -F _dotnet_bash_complete dotnet
 
 # Detect MinGW (Git Bash) on Windows
 elif uname | grep -qi 'mingw'; then
@@ -170,10 +186,12 @@ elif uname | grep -qi 'mingw'; then
 
     # Check if pyenv-win is available
     if command -v pyenv 1>/dev/null 2>&1; then
-        echo "Running in MinGW (Git Bash) on Windows: Using pyenv-win (Windows-specific pyenv)"
+        echo "Running in MinGW (Git Bash) on Windows: Using pyenv-win (Windows-specific pyenv) and dotnet"
     else
         echo "pyenv-win not found in PATH. Please check your installation."
     fi
+
+    complete -f -F _dotnet_bash_complete dotnet
 
 else
     # Default case for other Unix-like environments
@@ -182,4 +200,10 @@ else
     eval "$(pyenv init --path)"
     eval "$(pyenv init -)"
     eval "$(pyenv virtualenv-init -)"
+
+    complete -f -F _dotnet_bash_complete dotnet
+fi
+
+if [ -f ~/.git-completion.bash ]; then
+    . ~/.git-completion.bash
 fi
