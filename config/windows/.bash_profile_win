@@ -161,12 +161,16 @@ function _dotnet_bash_complete()
 if grep -qi microsoft /proc/version; then
     # WSL environment (Unix-based pyenv)
     export PATH="$HOME/.pyenv/bin:$PATH"
-    export PATH="$PATH:/usr/local/go/bin"
 
     eval "$(pyenv init --path)"
     eval "$(pyenv init -)"
     eval "$(pyenv virtualenv-init -)"
     echo "Running in WSL: Using WSL-specific pyenv and dotnet path"
+
+    # Fix permissions for WSLg runtime directory
+    if [ -d /mnt/wslg/runtime-dir ]; then
+        sudo chmod 0700 /mnt/wslg/runtime-dir
+    fi
 
     complete -f -F _dotnet_bash_complete dotnet
 
