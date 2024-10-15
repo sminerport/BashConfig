@@ -5,7 +5,7 @@
 # If not running interactively, don't do anything
 case $- in
     *i*) ;;
-      *) return;;
+    *) return;;
 esac
 
 # don't put duplicate lines or lines starting with space in the history.
@@ -47,12 +47,12 @@ esac
 
 if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-	# We have color support; assume it's compliant with Ecma-48
-	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-	# a case would tend to support setf rather than setaf.)
-	color_prompt=yes
+        # We have color support; assume it's compliant with Ecma-48
+        # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+        # a case would tend to support setf rather than setaf.)
+        color_prompt=yes
     else
-	color_prompt=
+        color_prompt=
     fi
 fi
 
@@ -65,10 +65,10 @@ unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
-xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    xterm*|rxvt*)
+        PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
     ;;
-*)
+    *)
     ;;
 esac
 
@@ -109,11 +109,11 @@ fi
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
 if ! shopt -oq posix; then
-  if [ -f /usr/share/bash-completion/bash_completion ]; then
-    . /usr/share/bash-completion/bash_completion
-  elif [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
-  fi
+    if [ -f /usr/share/bash-completion/bash_completion ]; then
+        . /usr/share/bash-completion/bash_completion
+        elif [ -f /etc/bash_completion ]; then
+        . /etc/bash_completion
+    fi
 fi
 
 # Customize the Bash Prompt
@@ -149,12 +149,12 @@ git config --global alias.isprivate '!gh repo view --json visibility --jq ".visi
 
 function _dotnet_bash_complete()
 {
-  local cur="${COMP_WORDS[COMP_CWORD]}" IFS=$'\n' # On Windows you may need to use use IFS=$'\r\n'
-  local candidates
+    local cur="${COMP_WORDS[COMP_CWORD]}" IFS=$'\n' # On Windows you may need to use use IFS=$'\r\n'
+    local candidates
 
-  read -d '' -ra candidates < <(dotnet complete --position "${COMP_POINT}" "${COMP_LINE}" 2>/dev/null)
+    read -d '' -ra candidates < <(dotnet complete --position "${COMP_POINT}" "${COMP_LINE}" 2>/dev/null)
 
-  read -d '' -ra COMPREPLY < <(compgen -W "${candidates[*]:-}" -- "$cur")
+    read -d '' -ra COMPREPLY < <(compgen -W "${candidates[*]:-}" -- "$cur")
 }
 
 # Detect if running in WSL
@@ -167,15 +167,26 @@ if grep -qi microsoft /proc/version; then
     eval "$(pyenv virtualenv-init -)"
     echo "Running in WSL: Using WSL-specific pyenv and dotnet path"
 
-    # Fix permissions for WSLg runtime directory
-    if [ -d /mnt/wslg/runtime-dir ]; then
+    # Fix permissions for WSLg runtime directory, add check to run sudo only when necessary
+    if [ -d /mnt/wslg/runtime-dir ] && [ "$(stat -c %a /mnt/wslg/runtime-dir)" != "700" ]; then
         sudo chmod 0700 /mnt/wslg/runtime-dir
+    fi
+
+    # Automatically start keychain and add SSH key if needed
+    if [ -z "$SSH_AUTH_SOCK" ]; then
+        # Initialize keychain with SSH agent support
+        eval $(keychain --eval --agents ssh id_ed25519)
+
+        # Optional: Add the key manually if not found (Keychain should handle this by default)
+        if ! ssh-add -l | grep -q "id_ed25519"; then
+            ssh-add ~/.ssh/id_ed25519 2>/dev/null || echo "No SSH key found to add."
+        fi
     fi
 
     complete -f -F _dotnet_bash_complete dotnet
 
-# Detect MinGW (Git Bash) on Windows
-elif uname | grep -qi 'mingw'; then
+    # Detect MinGW (Git Bash) on Windows
+    elif uname | grep -qi 'mingw'; then
     # MinGW environment on Windows with pyenv-win
 
     # Attempt to get the username
