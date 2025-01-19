@@ -1,11 +1,11 @@
-# ~/.bash_profile
+# ~/.bashrc: executed by bash(1) for non-login shells.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
 
 # If not running interactively, don't do anything
 case $- in
-    *i*) ;;
-      *) return;;
+*i*) ;;
+*) return ;;
 esac
 
 # don't put duplicate lines or lines starting with space in the history.
@@ -37,7 +37,7 @@ fi
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
-    xterm-color|*-256color) color_prompt=yes;;
+xterm-color | *-256color) color_prompt=yes ;;
 esac
 
 # uncomment for a colored prompt, if the terminal has the capability; turned
@@ -47,12 +47,12 @@ esac
 
 if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-	# We have color support; assume it's compliant with Ecma-48
-	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-	# a case would tend to support setf rather than setaf.)
-	color_prompt=yes
+        # We have color support; assume it's compliant with Ecma-48
+        # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+        # a case would tend to support setf rather than setaf.)
+        color_prompt=yes
     else
-	color_prompt=
+        color_prompt=
     fi
 fi
 
@@ -65,11 +65,10 @@ unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
-xterm*|rxvt*)
+xterm* | rxvt*)
     PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
     ;;
-*)
-    ;;
+*) ;;
 esac
 
 # enable color support of ls and also add handy aliases
@@ -109,15 +108,15 @@ fi
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
 if ! shopt -oq posix; then
-  if [ -f /usr/share/bash-completion/bash_completion ]; then
-    . /usr/share/bash-completion/bash_completion
-  elif [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
-  fi
+    if [ -f /usr/share/bash-completion/bash_completion ]; then
+        . /usr/share/bash-completion/bash_completion
+    elif [ -f /etc/bash_completion ]; then
+        . /etc/bash_completion
+    fi
 fi
 
 # Customize the Bash Prompt
-PS1='\[\033[1;96m\]\w '  # Current directory in light cyan
+PS1='\[\033[1;96m\]\w ' # Current directory in light cyan
 
 # Display Git branch in purple if in a Git repository, wrapped in \[ \] for non-printing characters
 PS1+='$(git branch --show-current 2>/dev/null | sed -e "s/^/ \[\033[0;95m\](/" -e "s/$/)\[\033[1;90m\]/") '
@@ -147,14 +146,13 @@ git config --global alias.isprivate '!gh repo view --json visibility --jq ".visi
 
 # Define the dotnet bash completion function
 
-function _dotnet_bash_complete()
-{
-  local cur="${COMP_WORDS[COMP_CWORD]}" IFS=$'\n' # On Windows you may need to use use IFS=$'\r\n'
-  local candidates
+function _dotnet_bash_complete() {
+    local cur="${COMP_WORDS[COMP_CWORD]}" IFS=$'\n' # On Windows you may need to use use IFS=$'\r\n'
+    local candidates
 
-  read -d '' -ra candidates < <(dotnet complete --position "${COMP_POINT}" "${COMP_LINE}" 2>/dev/null)
+    read -d '' -ra candidates < <(dotnet complete --position "${COMP_POINT}" "${COMP_LINE}" 2>/dev/null)
 
-  read -d '' -ra COMPREPLY < <(compgen -W "${candidates[*]:-}" -- "$cur")
+    read -d '' -ra COMPREPLY < <(compgen -W "${candidates[*]:-}" -- "$cur")
 }
 
 # Detect if running in WSL
@@ -172,15 +170,13 @@ if grep -qi microsoft /proc/version; then
         sudo chmod 0700 /mnt/wslg/runtime-dir
     fi
 
-    # Automatically start keychain and add SSH key if needed
-    if [ -z "$SSH_AUTH_SOCK" ]; then
-        # Initialize keychain with SSH agent support
-        eval $(keychain --eval --agents ssh id_ed25519)
+    # Always run keychain (it will check if the agent is running)
+    eval "$(keychain --eval --agents ssh ~/.ssh/id_ed25519)"
 
-        # Optional: Add the key manually if not found (Keychain should handle this by default)
-        if ! ssh-add -l | grep -q "id_ed25519"; then
-            ssh-add ~/.ssh/id_ed25519 2>/dev/null || echo "No SSH key found to add."
-        fi
+    # The above is usually enough to ensure your key is loaded,
+    # but if you want to double-check:
+    if ! ssh-add -l | grep -q "id_ed25519"; then
+        ssh-add ~/.ssh/id_ed25519 || echo "No SSH key found to add."
     fi
 
     complete -f -F _dotnet_bash_complete dotnet
